@@ -1,14 +1,13 @@
 import json
 from enum import Enum
 
-from boto3.dynamodb.conditions import Attr
-
-from corganize.core.util.datetimeutil import get_posix_now
-from corganize.externalclient import ddb
 from corganize.const import FILES, FILES_INDEX_USERID, FILES_FIELD_USERID, FILES_FIELD_USERFILEID, \
     FILES_FIELD_FILEID, FILES_FIELD_LAST_UPDATED, FILES_FIELD_LOCATION, FILES_FIELD_STORAGESERVICE, \
-    FILES_FIELD_FILENAME, FILES_FIELD_SIZE, FILES_FIELD_TAGS, FILES_FIELD_USERSTORAGELOCATION, DDB_REQUEST_FILTER_EXPRESSION, EXPRESSION_ATTRIBUTE_VALUES
+    FILES_FIELD_FILENAME, FILES_FIELD_SIZE, FILES_FIELD_TAGS, FILES_FIELD_USERSTORAGELOCATION, \
+    DDB_REQUEST_FILTER_EXPRESSION, EXPRESSION_ATTRIBUTE_VALUES
+from corganize.core.util.datetimeutil import get_posix_now
 from corganize.error import MissingFieldError, UnrecognizedFieldError
+from corganize.externalclient import ddb
 
 _FILE_ALLOWED_FIELDS = [
     FILES_FIELD_FILEID,
