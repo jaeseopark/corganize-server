@@ -16,7 +16,7 @@ def files_get(userid: str, headers: dict, body: dict):
 def single_file_upsert(userid: str, headers: dict, body: dict):
     file = body.get(REQUEST_BODY_FILE)
     if not file:
-        raise BadRequestError("'file' is missing")
+        raise BadRequestError(f"'{REQUEST_BODY_FILE}' is missing")
     try:
         upserted_file = upsert_file(userid, file)
         return {

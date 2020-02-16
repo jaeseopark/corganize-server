@@ -5,7 +5,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 
 from corganize.const.ddb import NEXT_TOKEN, DDB_RESOURCE_NAME, DDB_RESPONSE_ITEMS, \
-    DDB_REQUEST_KEY_CONDITION_EXPRESSION, DDB_REQUEST_INDEX_NAME, RETURN_VALUES_UPDATED_NEW
+    DDB_REQUEST_KEY_CONDITION_EXPRESSION, DDB_REQUEST_INDEX_NAME, RETURN_VALUES_UPDATED_NEW, DDB_RESPONSE_ATTRIBUTES
 
 dynamodb = boto3.resource(DDB_RESOURCE_NAME)
 
@@ -66,4 +66,4 @@ class DDB:
             ReturnValues=RETURN_VALUES_UPDATED_NEW,
             **kwargs
         )
-        return _remove_decimals(response["Attributes"])
+        return _remove_decimals(response[DDB_RESPONSE_ATTRIBUTES])
