@@ -1,7 +1,7 @@
 from importlib import import_module as _im
 from pathlib import Path as _p
 
-from corganize.decorator.endpoint import lookup
+from corganize.controller.decorator.endpoint import lookup
 from corganize.error import ResourceNotFoundError as _rnfe
 
 __all__ = [

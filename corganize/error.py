@@ -24,3 +24,7 @@ class MissingFieldError(CorganizeError):
 
 class UnrecognizedFieldError(CorganizeError):
     pass
+
+
+class InvalidArgumentError(CorganizeError):
+    pass

@@ -2,8 +2,8 @@ import json
 import logging
 from json import JSONDecodeError
 
-from corganize import auth
-from corganize.const.http import REQUEST_PATH, REQUEST_API_KEY, REQUEST_HEADERS, \
+from corganize.core import auth
+from corganize.const import REQUEST_PATH, REQUEST_API_KEY, REQUEST_HEADERS, \
     RESPONSE_BODY, RESPONSE_STATUS, REQUEST_BODY, REQUEST_HTTP_METHOD
 from corganize.controller import get_handler
 from corganize.error import InvalidApiKeyError, ResourceNotFoundError, BadRequestError
@@ -55,7 +55,7 @@ def lambda_handler(event, context):
                 request_body = json.loads(request_body)
         except (TypeError, JSONDecodeError):
             raise BadRequestError("request body cannot be parsed")
-        result = handler(userid, headers, request_body)
+        result = handler(userid, **headers, body=request_body)
 
         # Return 200-level response
         return result_to_response(result)

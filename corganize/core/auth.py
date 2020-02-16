@@ -1,5 +1,5 @@
-from corganize.const.ddb import USERS_FIELD_USERID, USERS, USERS_INDEX_APIKEY, USERS_FIELD_APIKEY
-from corganize.core.client import ddb
+from corganize.externalclient import ddb
+from corganize.const import USERS_FIELD_USERID, USERS, USERS_INDEX_APIKEY, USERS_FIELD_APIKEY
 from corganize.error import InvalidApiKeyError
 
 

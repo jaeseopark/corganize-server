@@ -4,10 +4,12 @@ import json
 import boto3
 from boto3.dynamodb.conditions import Key
 
-from corganize.const.ddb import NEXT_TOKEN, DDB_RESOURCE_NAME, DDB_RESPONSE_ITEMS, \
-    DDB_REQUEST_KEY_CONDITION_EXPRESSION, DDB_REQUEST_INDEX_NAME, RETURN_VALUES_UPDATED_NEW, DDB_RESPONSE_ATTRIBUTES
+from corganize.const import NEXT_TOKEN, DDB_RESOURCE_NAME, DDB_RESPONSE_ITEMS, \
+    DDB_REQUEST_KEY_CONDITION_EXPRESSION, DDB_REQUEST_INDEX_NAME, RETURN_VALUES_UPDATED_NEW, DDB_RESPONSE_ATTRIBUTES, \
+    DDB_REQUEST_LIMIT, REQUEST_HEADER_LIMIT
+from corganize.error import InvalidArgumentError
 
-dynamodb = boto3.resource(DDB_RESOURCE_NAME)
+_dynamodb = boto3.resource(DDB_RESOURCE_NAME)
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -26,13 +28,12 @@ def _remove_decimals(obj: dict):
 
 class DDB:
     def __init__(self, table: str, key_field: str, index: str = None):
-        self.table = dynamodb.Table(table)
+        self.table = _dynamodb.Table(table)
         self.key_field = key_field
         self.index = index
 
-    def query(self, key, key_field_override=None, index_override=None, **kwargs):
+    def query(self, key, key_field_override=None, index_override=None, limit=None, next_token=None, **kwargs):
         items = list()
-        next_token = None
 
         while True:
             params = {
@@ -43,6 +44,11 @@ class DDB:
             if next_token:
                 params[NEXT_TOKEN] = next_token
 
+            if limit is not None:
+                if limit < 1 or not isinstance(limit, int):
+                    raise InvalidArgumentError(f"'{REQUEST_HEADER_LIMIT}' must be a positive integer")
+                params[DDB_REQUEST_LIMIT] = limit
+
             response = self.table.query(**params, **kwargs)
 
             if DDB_RESPONSE_ITEMS in response:
@@ -50,8 +56,11 @@ class DDB:
 
             next_token = response.get(NEXT_TOKEN)
 
-            if not next_token:
+            if not next_token or (limit is not None and len(response) > limit):
                 break
+
+        if limit:
+            items = items[:limit]
 
         return _remove_decimals(items)
 
