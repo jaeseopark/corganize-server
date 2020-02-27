@@ -50,6 +50,7 @@ FILES_FIELD_TAGS = "tags"
 FILES_FIELD_STORAGESERVICE = "storageservice"
 FILES_FIELD_LOCATION = "locationref"
 FILES_FIELD_LAST_UPDATED = "lastupdated"
+FILES_FIELD_SOURCEURL = "sourecurl"
 
 # DDB USERS TABLE
 USERS = "corganize-users"
