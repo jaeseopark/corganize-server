@@ -4,7 +4,7 @@ from enum import Enum
 from corganize.const import FILES, FILES_INDEX_USERID, FILES_FIELD_USERID, FILES_FIELD_USERFILEID, \
     FILES_FIELD_FILEID, FILES_FIELD_LAST_UPDATED, FILES_FIELD_LOCATION, FILES_FIELD_STORAGESERVICE, \
     FILES_FIELD_FILENAME, FILES_FIELD_SIZE, FILES_FIELD_TAGS, FILES_FIELD_USERSTORAGELOCATION, \
-    DDB_REQUEST_FILTER_EXPRESSION, EXPRESSION_ATTRIBUTE_VALUES, FILES_FIELD_SOURCEURL
+    DDB_REQUEST_FILTER_EXPRESSION, EXPRESSION_ATTRIBUTE_VALUES, FILES_FIELD_SOURCEURL, FILES_FIELD_ISACTIVE
 from corganize.core.util.datetimeutil import get_posix_now
 from corganize.error import MissingFieldError, UnrecognizedFieldError
 from corganize.externalclient import ddb
@@ -16,7 +16,8 @@ _FILE_ALLOWED_FIELDS = [
     FILES_FIELD_STORAGESERVICE,
     FILES_FIELD_LOCATION,
     FILES_FIELD_TAGS,
-    FILES_FIELD_SOURCEURL
+    FILES_FIELD_SOURCEURL,
+    FILES_FIELD_ISACTIVE
 ]
 
 _REDACTED_FIELDS = [
@@ -74,7 +75,8 @@ def upsert_file(userid, file: dict):
         FILES_FIELD_USERID: userid,
         FILES_FIELD_USERFILEID: userid + fileid,
         FILES_FIELD_USERSTORAGELOCATION: userid + storageservice + location,
-        FILES_FIELD_LAST_UPDATED: get_posix_now()
+        FILES_FIELD_LAST_UPDATED: get_posix_now(),
+        FILES_FIELD_ISACTIVE: file.get(FILES_FIELD_ISACTIVE, True)
     }
 
     item = _DDB_CLIENT.upsert({**file, **metadata}, key_field_override=FILES_FIELD_USERFILEID)
