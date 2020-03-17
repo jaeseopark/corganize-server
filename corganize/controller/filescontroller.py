@@ -1,8 +1,11 @@
-from corganize.const import PATH_FILES, RESPONSE_BODY, GET, PATH_FILES_UPSERT, POST, REQUEST_BODY_FILE, \
-    PATH_FILES_INCOMPLETE
+from corganize.const import (GET, PATH_FILES, PATH_FILES_INCOMPLETE,
+                             PATH_FILES_UPSERT, POST, REQUEST_BODY_FILE,
+                             RESPONSE_BODY)
 from corganize.controller.decorator.endpoint import endpoint
-from corganize.core.files import get_files, upsert_file, FileRetrievalFilter
-from corganize.error import UnrecognizedFieldError, MissingFieldError, BadRequestError, InvalidArgumentError
+from corganize.core.files import get_files, upsert_file
+from corganize.error import (BadRequestError, InvalidArgumentError,
+                             MissingFieldError, UnrecognizedFieldError)
+from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
 
 
 def _to_int(value: str):

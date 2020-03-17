@@ -4,9 +4,16 @@ import json
 import boto3
 from boto3.dynamodb.conditions import Key
 
-from corganize.const import NEXT_TOKEN, DDB_RESOURCE_NAME, DDB_RESPONSE_ITEMS, \
-    DDB_REQUEST_KEY_CONDITION_EXPRESSION, DDB_REQUEST_INDEX_NAME, RETURN_VALUES_UPDATED_NEW, DDB_RESPONSE_ATTRIBUTES, \
-    DDB_REQUEST_LIMIT, REQUEST_HEADER_LIMIT
+from corganize.const import (DDB_REQUEST_FILTER_EXPRESSION,
+                             DDB_REQUEST_INDEX_NAME,
+                             DDB_REQUEST_KEY_CONDITION_EXPRESSION,
+                             DDB_REQUEST_LIMIT, DDB_RESOURCE_NAME,
+                             DDB_RESPONSE_ATTRIBUTES, DDB_RESPONSE_ITEMS,
+                             EXPRESSION_ATTRIBUTE_VALUES,
+                             FILES_FIELD_USERSTORAGELOCATION,
+                             FILES_INDEX_USERSTORAGELOCATION, NEXT_TOKEN,
+                             REQUEST_HEADER_LIMIT, RETURN_VALUES_UPDATED_NEW)
+from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
 from corganize.error import InvalidArgumentError
 
 _dynamodb = boto3.resource(DDB_RESOURCE_NAME)
@@ -32,14 +39,31 @@ class DDB:
         self.key_field = key_field
         self.index = index
 
-    def query(self, key, key_field_override=None, index_override=None, limit=None, next_token=None, **kwargs):
+    def query(self, key, limit=None, next_token=None, filters: list = None, **kwargs):
         items = list()
 
         while True:
             params = {
-                DDB_REQUEST_INDEX_NAME: index_override or self.index,
-                DDB_REQUEST_KEY_CONDITION_EXPRESSION: Key(key_field_override or self.key_field).eq(key)
+                DDB_REQUEST_INDEX_NAME: self.index,
+                DDB_REQUEST_KEY_CONDITION_EXPRESSION: Key(self.key_field).eq(key)
             }
+
+            if filters:
+                converted_filters = list()
+                exp_attr_values = dict()
+                for i in range(len(filters)):
+                    filter_i = filters[i]
+                    # var = f":var{i}" # not used now
+                    if not isinstance(filter_i, FileRetrievalFilter):
+                        raise TypeError(f"Invalid filter: {filter_i}")
+                    if filter_i == FileRetrievalFilter.INCOMPLETE:
+                        params[DDB_REQUEST_INDEX_NAME] = FILES_INDEX_USERSTORAGELOCATION
+                        params[DDB_REQUEST_KEY_CONDITION_EXPRESSION] = Key(FILES_FIELD_USERSTORAGELOCATION).eq(key)
+
+                if converted_filters:
+                    # This block of code isn't used today
+                    params[DDB_REQUEST_FILTER_EXPRESSION] = " and ".join(converted_filters)
+                    params[EXPRESSION_ATTRIBUTE_VALUES] = exp_attr_values
 
             if next_token:
                 params[NEXT_TOKEN] = next_token

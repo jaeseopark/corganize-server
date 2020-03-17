@@ -1,10 +1,9 @@
 import json
-from enum import Enum
 
 from corganize.const import FILES, FILES_INDEX_USERID, FILES_FIELD_USERID, FILES_FIELD_USERFILEID, \
     FILES_FIELD_FILEID, FILES_FIELD_LAST_UPDATED, FILES_FIELD_LOCATION, FILES_FIELD_STORAGESERVICE, \
     FILES_FIELD_FILENAME, FILES_FIELD_SIZE, FILES_FIELD_TAGS, FILES_FIELD_USERSTORAGELOCATION, \
-    DDB_REQUEST_FILTER_EXPRESSION, EXPRESSION_ATTRIBUTE_VALUES, FILES_FIELD_SOURCEURL, FILES_FIELD_ISACTIVE
+    FILES_FIELD_SOURCEURL, FILES_FIELD_ISACTIVE
 from corganize.core.util.datetimeutil import get_posix_now
 from corganize.error import MissingFieldError, UnrecognizedFieldError
 from corganize.externalclient import ddb
@@ -29,10 +28,6 @@ _REDACTED_FIELDS = [
 _DDB_CLIENT = ddb.DDB(FILES, FILES_FIELD_USERID, FILES_INDEX_USERID)
 
 
-class FileRetrievalFilter(Enum):
-    INCOMPLETE = 1
-
-
 def _redact_item(item: dict):
     for key in [key for key in item.keys() if key in _REDACTED_FIELDS]:
         item.pop(key)
@@ -40,23 +35,7 @@ def _redact_item(item: dict):
 
 
 def get_files(userid: str, limit: int = None, filters: list = None):
-    kwargs = dict()
-    if filters:
-        converted_filters = list()
-        exp_attr_values = dict()
-        for i in range(len(filters)):
-            filter = filters[i]
-            var = f":var{i}"
-
-            if not isinstance(filter, FileRetrievalFilter):
-                raise TypeError(f"Invalid filter: {filter}")
-            if filter == FileRetrievalFilter.INCOMPLETE:
-                exp_attr_values[var] = userid
-                converted_filters.append(f"{FILES_FIELD_USERSTORAGELOCATION} = {var}")
-        kwargs[DDB_REQUEST_FILTER_EXPRESSION] = " and ".join(converted_filters)
-        kwargs[EXPRESSION_ATTRIBUTE_VALUES] = exp_attr_values
-
-    items = _DDB_CLIENT.query(userid, limit=limit, **kwargs)
+    items = _DDB_CLIENT.query(userid, limit=limit, filters=filters)
     return [_redact_item(item) for item in items]
 
 
