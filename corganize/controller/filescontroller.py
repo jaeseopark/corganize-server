@@ -29,7 +29,15 @@ def files_get(userid: str, limit: str = None, *args, **kwargs):
 @endpoint(path=PATH_FILES_INCOMPLETE, httpmethod=GET)
 def files_get_incomplete(userid: str, limit=None, *args, **kwargs):
     try:
-        return {RESPONSE_BODY: get_files(userid, _to_int(limit), filters=[FileRetrievalFilter.INCOMPLETE])}
+        incompete_files = get_files(userid, _to_int(limit), filters=[FileRetrievalFilter.INCOMPLETE])
+
+        # ----start of temporary fix----
+        # FileRetrievalFilter.INCOMPLETE isn't working.. so here is the temporary fix
+        # need to look into DDB table for the permanent fix
+        incompete_files = [f for f in incompete_files if not f.get("locationref")]
+        # ----end of temporary fix----
+
+        return {RESPONSE_BODY: incompete_files}
     except InvalidArgumentError as e:
         raise BadRequestError(str(e))
 
