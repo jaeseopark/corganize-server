@@ -1,20 +1,20 @@
+import base64
 import decimal
 import json
 
 import boto3
 from boto3.dynamodb.conditions import Key
 
-from corganize.const import (DDB_REQUEST_FILTER_EXPRESSION,
+from corganize.const import (DDB_NEXT_TOKEN, DDB_REQUEST_FILTER_EXPRESSION,
                              DDB_REQUEST_INDEX_NAME,
                              DDB_REQUEST_KEY_CONDITION_EXPRESSION,
-                             DDB_REQUEST_LIMIT, DDB_RESOURCE_NAME,
-                             DDB_RESPONSE_ATTRIBUTES, DDB_RESPONSE_ITEMS,
-                             EXPRESSION_ATTRIBUTE_VALUES,
+                             DDB_RESOURCE_NAME, DDB_RESPONSE_ATTRIBUTES,
+                             DDB_RESPONSE_ITEMS, EXPRESSION_ATTRIBUTE_VALUES,
                              FILES_FIELD_USERSTORAGELOCATION,
-                             FILES_INDEX_USERSTORAGELOCATION, NEXT_TOKEN,
-                             REQUEST_HEADER_LIMIT, RETURN_VALUES_UPDATED_NEW)
+                             FILES_INDEX_USERSTORAGELOCATION,
+                             NEXT_TOKEN,
+                             RETURN_VALUES_UPDATED_NEW)
 from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
-from corganize.error import InvalidArgumentError
 
 _dynamodb = boto3.resource(DDB_RESOURCE_NAME)
 
@@ -33,16 +33,31 @@ def _remove_decimals(obj: dict):
     return json.loads(json.dumps(obj, cls=DecimalEncoder))
 
 
+def _to_next_token(ddb_base_params: dict, ddb_next_token: str, encoding: str) -> str:
+    ddb_new_params = {
+        **ddb_base_params,
+        DDB_NEXT_TOKEN: ddb_next_token
+    }
+    ddb_new_params_str = json.dumps(ddb_new_params)
+    return base64.b64encode(ddb_new_params_str.encode(encoding)).decode(encoding)
+
+
+def _to_query_params(next_token: str, encoding: str) -> str:
+    return base64.b64decode(next_token.encode(encoding)).decode(encoding)
+
+
 class DDB:
     def __init__(self, table: str, key_field: str, index: str = None):
         self.table = _dynamodb.Table(table)
         self.key_field = key_field
         self.index = index
 
-    def query(self, key, limit=None, next_token=None, filters: list = None, **kwargs):
+    def query(self, key, next_token: str = None, filters: list = None) -> tuple:
         items = list()
 
-        while True:
+        if next_token:
+            params = _to_query_params(next_token)
+        else:
             params = {
                 DDB_REQUEST_INDEX_NAME: self.index,
                 DDB_REQUEST_KEY_CONDITION_EXPRESSION: Key(self.key_field).eq(key)
@@ -61,34 +76,23 @@ class DDB:
                         params[DDB_REQUEST_KEY_CONDITION_EXPRESSION] = Key(FILES_FIELD_USERSTORAGELOCATION).eq(key)
 
                 if converted_filters:
-                    # This block of code isn't used today
                     params[DDB_REQUEST_FILTER_EXPRESSION] = " and ".join(converted_filters)
                     params[EXPRESSION_ATTRIBUTE_VALUES] = exp_attr_values
 
-            if next_token:
-                params[NEXT_TOKEN] = next_token
+        response = self.table.query(**params)
 
-            if limit is not None:
-                if limit < 1 or not isinstance(limit, int):
-                    raise InvalidArgumentError(f"'{REQUEST_HEADER_LIMIT}' must be a positive integer")
-                params[DDB_REQUEST_LIMIT] = limit
+        items = response.get(DDB_RESPONSE_ITEMS, list())
 
-            response = self.table.query(**params, **kwargs)
+        metadata = dict()
+        ddb_next_token = response.get(DDB_NEXT_TOKEN)
+        if ddb_next_token:
+            metadata.update({
+                NEXT_TOKEN: _to_next_token(params, ddb_next_token=ddb_next_token)
+            })
 
-            if DDB_RESPONSE_ITEMS in response:
-                items += response[DDB_RESPONSE_ITEMS]
+        return _remove_decimals(items), metadata
 
-            next_token = response.get(NEXT_TOKEN)
-
-            if not next_token or (limit is not None and len(response) > limit):
-                break
-
-        if limit:
-            items = items[:limit]
-
-        return _remove_decimals(items)
-
-    def upsert(self, item, key_field_override=None, **kwargs):
+    def upsert(self, item, key_field_override=None, **kwargs) -> dict:
         key_field = key_field_override or self.key_field
         item_keys = [k for k in item.keys() if k != key_field]
         key_to_var = {item_keys[i]: f":var{i}" for i in range(len(item_keys))}

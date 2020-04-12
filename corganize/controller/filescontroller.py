@@ -18,18 +18,17 @@ def _to_int(value: str):
 
 
 @endpoint(path=PATH_FILES, httpmethod=GET)
-def files_get(userid: str, limit: str = None, *args, **kwargs):
-    print(limit)
+def files_get(userid: str, nexttoken: str = None, *args, **kwargs):
     try:
-        return {RESPONSE_BODY: get_files(userid, _to_int(limit))}
+        return {RESPONSE_BODY: get_files(userid, next_token=nexttoken)}
     except InvalidArgumentError as e:
         raise BadRequestError(str(e))
 
 
 @endpoint(path=PATH_FILES_INCOMPLETE, httpmethod=GET)
-def files_get_incomplete(userid: str, limit=None, *args, **kwargs):
+def files_get_incomplete(userid: str, nexttoken: str = None, *args, **kwargs):
     try:
-        incompete_files = get_files(userid, _to_int(limit), filters=[FileRetrievalFilter.INCOMPLETE])
+        incompete_files = get_files(userid, next_token=nexttoken, filters=[FileRetrievalFilter.INCOMPLETE])
 
         # ----start of temporary fix----
         # FileRetrievalFilter.INCOMPLETE isn't working.. so here is the temporary fix
