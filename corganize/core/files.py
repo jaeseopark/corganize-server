@@ -60,7 +60,8 @@ def upsert_file(userid, file: dict):
         FILES_FIELD_USERFILEID: userid + fileid,
         FILES_FIELD_USERSTORAGELOCATION: userid + storageservice + location,
         FILES_FIELD_LAST_UPDATED: get_posix_now(),
-        FILES_FIELD_ISACTIVE: file.get(FILES_FIELD_ISACTIVE, True)
+        FILES_FIELD_ISACTIVE: file.get(FILES_FIELD_ISACTIVE, True),
+        FILES_FIELD_ISPUBLIC: file.get(FILES_FIELD_ISPUBLIC, True)
     }
 
     item = _DDB_CLIENT.upsert({**file, **metadata}, key_field_override=FILES_FIELD_USERFILEID)
