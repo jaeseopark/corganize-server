@@ -53,6 +53,7 @@ FILES_FIELD_LOCATION = "locationref"
 FILES_FIELD_LAST_UPDATED = "lastupdated"
 FILES_FIELD_SOURCEURL = "sourceurl"
 FILES_FIELD_ISACTIVE = "isactive"
+FILES_FIELD_ISPUBLIC = "ispublic"
 
 # DDB USERS TABLE
 USERS = "corganize-users"
