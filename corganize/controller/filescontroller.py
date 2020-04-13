@@ -1,6 +1,6 @@
 from corganize.const import (GET, PATH_FILES, PATH_FILES_INCOMPLETE,
                              PATH_FILES_UPSERT, POST, REQUEST_BODY_FILE,
-                             RESPONSE_BODY)
+                             RESPONSE_BODY, REQUEST_BODY_FILES)
 from corganize.controller.decorator.endpoint import endpoint
 from corganize.core.files import get_files, upsert_file
 from corganize.error import (BadRequestError, InvalidArgumentError,
@@ -43,14 +43,26 @@ def files_get_incomplete(userid: str, limit=None, *args, **kwargs):
 
 
 @endpoint(path=PATH_FILES_UPSERT, httpmethod=POST)
-def single_file_upsert(userid: str, body: dict, *args, **kwargs):
-    file = body.get(REQUEST_BODY_FILE)
-    if not file:
-        raise BadRequestError(f"'{REQUEST_BODY_FILE}' is missing")
+def upsert(userid: str, body: dict, *args, **kwargs):
+    files = body.get(REQUEST_BODY_FILES)
+
+    if not files:
+        file = body.get(REQUEST_BODY_FILE)
+        if file:
+            if not isinstance(file, dict):
+                raise BadRequestError(f"'{REQUEST_BODY_FILE}' must be a dictionary")
+            files = [file]
+        else:
+            raise BadRequestError(f"'{REQUEST_BODY_FILES}' missing")
+
+    if not isinstance(files, list):
+        raise BadRequestError(f"'{REQUEST_BODY_FILES}' must be a list")
+
     try:
-        upserted_file = upsert_file(userid, file)
+        upserted_files = [upsert_file(userid, file) for file in files]
+
         return {
-            RESPONSE_BODY: upserted_file
+            RESPONSE_BODY: upserted_files
         }
     except (MissingFieldError, UnrecognizedFieldError) as e:
         raise BadRequestError(str(e))
