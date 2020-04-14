@@ -9,8 +9,9 @@ from boto3.dynamodb.conditions import Key
 from corganize.const import (DDB_NEXT_TOKEN, DDB_REQUEST_FILTER_EXPRESSION,
                              DDB_REQUEST_INDEX_NAME,
                              DDB_REQUEST_KEY_CONDITION_EXPRESSION,
-                             DDB_RESOURCE_NAME, DDB_RESPONSE_ATTRIBUTES,
-                             DDB_RESPONSE_ITEMS, EXPRESSION_ATTRIBUTE_VALUES,
+                             DDB_REQUEST_LIMIT, DDB_RESOURCE_NAME,
+                             DDB_RESPONSE_ATTRIBUTES, DDB_RESPONSE_ITEMS,
+                             EXPRESSION_ATTRIBUTE_VALUES,
                              FILES_FIELD_USERSTORAGELOCATION,
                              FILES_INDEX_USERSTORAGELOCATION, NEXT_TOKEN,
                              RETURN_VALUES_UPDATED_NEW)
@@ -19,6 +20,8 @@ from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
 _dynamodb = boto3.resource(DDB_RESOURCE_NAME)
 
 LOGGER = logging.getLogger(__name__)
+
+_QUERY_LIMIT = 500
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -70,7 +73,8 @@ class DDB:
         else:
             params = {
                 DDB_REQUEST_INDEX_NAME: self.index,
-                DDB_REQUEST_KEY_CONDITION_EXPRESSION: Key(self.key_field).eq(key)
+                DDB_REQUEST_KEY_CONDITION_EXPRESSION: Key(self.key_field).eq(key),
+                DDB_REQUEST_LIMIT: _QUERY_LIMIT
             }
 
             if filters:

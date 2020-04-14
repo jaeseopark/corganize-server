@@ -42,20 +42,16 @@ def files_get_incomplete(userid: str, nexttoken: str = None, *args, **kwargs):
 
 
 @endpoint(path=PATH_FILES_UPSERT, httpmethod=POST)
-def upsert(userid: str, body: dict, *args, **kwargs):
-    files = body.get(REQUEST_BODY_FILES)
-
+def upsert(userid: str, files: list = None, *args, **kwargs):
     if not files:
-        file = body.get(REQUEST_BODY_FILE)
-        if file:
-            if not isinstance(file, dict):
-                raise BadRequestError(f"'{REQUEST_BODY_FILE}' must be a dictionary")
-            files = [file]
-        else:
-            raise BadRequestError(f"'{REQUEST_BODY_FILES}' missing")
+        raise BadRequestError(f"'{REQUEST_BODY_FILES}' missing or empty")
 
     if not isinstance(files, list):
         raise BadRequestError(f"'{REQUEST_BODY_FILES}' must be a list")
+
+    for element in files:
+        if not isinstance(element, dict):
+            raise BadRequestError(f"All elements of '{REQUEST_BODY_FILES}' must be dictionaries")
 
     try:
         upserted_files = [upsert_file(userid, file) for file in files]
