@@ -5,14 +5,14 @@ import json
 import boto3
 from boto3.dynamodb.conditions import Key
 
-from corganize.const import (DDB_NEXT_TOKEN, DDB_REQUEST_FILTER_EXPRESSION,
+from corganize.const import (DDB_NEXT_TOKEN,
+                             DDB_REQUEST_FILTER_EXPRESSION,
                              DDB_REQUEST_INDEX_NAME,
                              DDB_REQUEST_KEY_CONDITION_EXPRESSION,
                              DDB_RESOURCE_NAME, DDB_RESPONSE_ATTRIBUTES,
                              DDB_RESPONSE_ITEMS, EXPRESSION_ATTRIBUTE_VALUES,
                              FILES_FIELD_USERSTORAGELOCATION,
-                             FILES_INDEX_USERSTORAGELOCATION,
-                             NEXT_TOKEN,
+                             FILES_INDEX_USERSTORAGELOCATION, NEXT_TOKEN,
                              RETURN_VALUES_UPDATED_NEW)
 from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
 
@@ -46,13 +46,19 @@ def _to_query_params(next_token: str, encoding: str) -> str:
     return base64.b64decode(next_token.encode(encoding)).decode(encoding)
 
 
+class DDBQueryResponse:
+    def __init__(self, items: list, metadata: dict):
+        self.items = items
+        self.metadata = metadata
+
+
 class DDB:
     def __init__(self, table: str, key_field: str, index: str = None):
         self.table = _dynamodb.Table(table)
         self.key_field = key_field
         self.index = index
 
-    def query(self, key, next_token: str = None, filters: list = None) -> tuple:
+    def query(self, key, next_token: str = None, filters: list = None) -> DDBQueryResponse:
         items = list()
 
         if next_token:
@@ -90,7 +96,7 @@ class DDB:
                 NEXT_TOKEN: _to_next_token(params, ddb_next_token=ddb_next_token)
             })
 
-        return _remove_decimals(items), metadata
+        return DDBQueryResponse(_remove_decimals(items), metadata)
 
     def upsert(self, item, key_field_override=None, **kwargs) -> dict:
         key_field = key_field_override or self.key_field

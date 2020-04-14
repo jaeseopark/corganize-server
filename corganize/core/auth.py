@@ -17,13 +17,18 @@ def _redact_apikey(apikey: str):
 
 def get_userid(apikey: str):
     if apikey:
-        items = ddb.DDB(USERS, USERS_FIELD_APIKEY, USERS_INDEX_APIKEY).query(apikey)
-        if len(items) >= 1:
-            LOGGER.warning(f"Too many users found for apikey={_redact_apikey(apikey)}")
-        elif len(items) == 1:
-            return items[0][USERS_FIELD_USERID]
+        redacted_apikey = _redact_apikey(apikey)
+        query_response = ddb.DDB(USERS, USERS_FIELD_APIKEY, USERS_INDEX_APIKEY).query(apikey)
+        if len(query_response.items) >= 1:
+            LOGGER.error(f"Too many users found for apikey={redacted_apikey}")
+        elif len(query_response.items) == 1:
+            LOGGER.debug(f"userid found for apikey={redacted_apikey}")
+            return query_response.items[0][USERS_FIELD_USERID]
         else:
-            LOGGER.debug(f"No userid found for apikey='{_redact_apikey(apikey)}'")
+            LOGGER.debug(f"No userid found for apikey='{redacted_apikey}'")
+    else:
+        LOGGER.debug(f"apikey='{apikey}'")
+
     return None
 
 
