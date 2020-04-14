@@ -39,9 +39,12 @@ def _redact_item(item: dict):
     return item
 
 
-def get_files(userid: str, limit: int = None, filters: list = None):
-    items = _DDB_CLIENT.query(userid, limit=limit, filters=filters)
-    return [_redact_item(item) for item in items]
+def get_files(userid: str, next_token: str = None, filters: list = None):
+    items, metadata = _DDB_CLIENT.query(userid, next_token=next_token, filters=filters)
+    return {
+        "metadata": metadata,
+        "files": [_redact_item(item) for item in items]
+    }
 
 
 def upsert_file(userid, file: dict):
