@@ -8,6 +8,20 @@ from corganize.const import REQUEST_PATH, REQUEST_API_KEY, REQUEST_HEADERS, \
 from corganize.controller import get_handler
 from corganize.error import InvalidApiKeyError, ResourceNotFoundError, BadRequestError
 
+
+class LambdaLogFormatter(logging.Formatter):
+    def format(self, record):
+        result = super().format(record)
+        return result.replace('\n', '\r')
+
+
+root_logger = logging.getLogger()
+if len(root_logger.handlers) > 0:
+    root_logger.setLevel(logging.INFO)
+    for handler in root_logger.handlers:
+        fmt = LambdaLogFormatter(handler.formatter._fmt)
+        handler.setFormatter(fmt)
+
 LOGGER = logging.getLogger(__name__)
 
 
