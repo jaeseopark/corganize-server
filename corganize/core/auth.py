@@ -21,7 +21,7 @@ def get_userid(apikey: str):
     if apikey:
         redacted_apikey = _redact_apikey(apikey)
         query_response = ddb.DDB(USERS, USERS_FIELD_APIKEY, USERS_INDEX_APIKEY).query(apikey)
-        if len(query_response.items) >= 1:
+        if len(query_response.items) > 1:
             raise CorganizeError(f"Too many users found for apikey={redacted_apikey} len(items)={len(query_response.items)}")
         elif len(query_response.items) == 1:
             LOGGER.debug(f"userid found for apikey={redacted_apikey}")
