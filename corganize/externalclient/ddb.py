@@ -9,7 +9,7 @@ from boto3.dynamodb.conditions import Key
 from corganize.const import (DDB_NEXT_TOKEN, DDB_REQUEST_FILTER_EXPRESSION,
                              DDB_REQUEST_INDEX_NAME,
                              DDB_REQUEST_KEY_CONDITION_EXPRESSION,
-                             DDB_REQUEST_LIMIT, DDB_RESOURCE_NAME,
+                             DDB_REQUEST_PAGE_SIZE, DDB_RESOURCE_NAME,
                              DDB_RESPONSE_ATTRIBUTES, DDB_RESPONSE_ITEMS,
                              EXPRESSION_ATTRIBUTE_VALUES,
                              FILES_FIELD_USERSTORAGELOCATION,
@@ -21,7 +21,7 @@ _dynamodb = boto3.resource(DDB_RESOURCE_NAME)
 
 LOGGER = logging.getLogger(__name__)
 
-_QUERY_LIMIT = 500
+_QUERY_PAGE_SIZE = 500
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -74,7 +74,7 @@ class DDB:
             params = {
                 DDB_REQUEST_INDEX_NAME: self.index,
                 DDB_REQUEST_KEY_CONDITION_EXPRESSION: Key(self.key_field).eq(key),
-                DDB_REQUEST_LIMIT: _QUERY_LIMIT
+                DDB_REQUEST_PAGE_SIZE: _QUERY_PAGE_SIZE
             }
 
             if filters:
