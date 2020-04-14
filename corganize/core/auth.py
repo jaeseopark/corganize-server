@@ -7,12 +7,14 @@ from corganize.externalclient import ddb
 
 LOGGER = logging.getLogger(__name__)
 
+_REDACT_CLEARTEXT_LEN = 3
+
 
 def _redact_apikey(apikey: str):
     if not apikey:
         return ""
 
-    return apikey[:4] + "*" * (len(apikey) - 4)
+    return apikey[:_REDACT_CLEARTEXT_LEN] + "*" * (len(apikey) - _REDACT_CLEARTEXT_LEN)
 
 
 def get_userid(apikey: str):
