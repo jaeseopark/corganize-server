@@ -7,7 +7,8 @@ from corganize.const import (FILES, FILES_FIELD_FILEID, FILES_FIELD_FILENAME,
                              FILES_FIELD_STORAGESERVICE, FILES_FIELD_TAGS,
                              FILES_FIELD_USERFILEID, FILES_FIELD_USERID,
                              FILES_FIELD_USERSTORAGELOCATION,
-                             FILES_INDEX_USERID)
+                             FILES_INDEX_USERID, RESPONSE_FILES,
+                             RESPONSE_METADATA)
 from corganize.core.util.datetimeutil import get_posix_now
 from corganize.error import MissingFieldError, UnrecognizedFieldError
 from corganize.externalclient import ddb
@@ -40,10 +41,10 @@ def _redact_item(item: dict):
 
 
 def get_files(userid: str, next_token: str = None, filters: list = None):
-    items, metadata = _DDB_CLIENT.query(userid, next_token=next_token, filters=filters)
+    query_response = _DDB_CLIENT.query(userid, next_token=next_token, filters=filters)
     return {
-        "metadata": metadata,
-        "files": [_redact_item(item) for item in items]
+        RESPONSE_METADATA: query_response.metadata,
+        RESPONSE_FILES: [_redact_item(item) for item in query_response.items]
     }
 
 
