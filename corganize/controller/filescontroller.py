@@ -42,7 +42,9 @@ def files_get_incomplete(userid: str, nexttoken: str = None, *args, **kwargs):
 
 
 @endpoint(path=PATH_FILES_UPSERT, httpmethod=POST)
-def upsert(userid: str, files: list = None, *args, **kwargs):
+def upsert(userid: str, body: dict, *args, **kwargs):
+    files = body.get(REQUEST_BODY_FILES)
+
     if not files:
         raise BadRequestError(f"'{REQUEST_BODY_FILES}' missing or empty")
 
