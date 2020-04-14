@@ -1,11 +1,11 @@
 from corganize.const import (GET, PATH_FILES, PATH_FILES_INCOMPLETE,
                              PATH_FILES_UPSERT, POST, REQUEST_BODY_FILE,
-                             RESPONSE_BODY, REQUEST_BODY_FILES)
+                             REQUEST_BODY_FILES, RESPONSE_BODY, RESPONSE_FILES)
 from corganize.controller.decorator.endpoint import endpoint
+from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
 from corganize.core.files import get_files, upsert_file
 from corganize.error import (BadRequestError, InvalidArgumentError,
                              MissingFieldError, UnrecognizedFieldError)
-from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
 
 
 def _to_int(value: str):
@@ -33,7 +33,7 @@ def files_get_incomplete(userid: str, nexttoken: str = None, *args, **kwargs):
         # ----start of temporary fix----
         # FileRetrievalFilter.INCOMPLETE isn't working.. so here is the temporary fix
         # need to look into DDB table for the permanent fix
-        incompete_files = [f for f in incompete_files if not f.get("locationref")]
+        incompete_files[RESPONSE_FILES] = [f for f in incompete_files[RESPONSE_FILES] if not f.get("locationref")]
         # ----end of temporary fix----
 
         return {RESPONSE_BODY: incompete_files}
