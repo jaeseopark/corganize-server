@@ -1,12 +1,12 @@
 import base64
 import decimal
 import json
+import logging
 
 import boto3
 from boto3.dynamodb.conditions import Key
 
-from corganize.const import (DDB_NEXT_TOKEN,
-                             DDB_REQUEST_FILTER_EXPRESSION,
+from corganize.const import (DDB_NEXT_TOKEN, DDB_REQUEST_FILTER_EXPRESSION,
                              DDB_REQUEST_INDEX_NAME,
                              DDB_REQUEST_KEY_CONDITION_EXPRESSION,
                              DDB_RESOURCE_NAME, DDB_RESPONSE_ATTRIBUTES,
@@ -17,6 +17,8 @@ from corganize.const import (DDB_NEXT_TOKEN,
 from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
 
 _dynamodb = boto3.resource(DDB_RESOURCE_NAME)
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -43,7 +45,8 @@ def _to_next_token(ddb_base_params: dict, ddb_next_token: str, encoding: str) ->
 
 
 def _to_query_params(next_token: str, encoding: str) -> str:
-    return base64.b64decode(next_token.encode(encoding)).decode(encoding)
+    ddb_params_str = base64.b64decode(next_token.encode(encoding)).decode(encoding)
+    return json.loads(ddb_params_str)
 
 
 class DDBQueryResponse:
@@ -62,6 +65,7 @@ class DDB:
         items = list()
 
         if next_token:
+            LOGGER.info(f"Next token found in the request. converting it to params...")
             params = _to_query_params(next_token)
         else:
             params = {
@@ -92,6 +96,7 @@ class DDB:
         metadata = dict()
         ddb_next_token = response.get(DDB_NEXT_TOKEN)
         if ddb_next_token:
+            LOGGER.info("The DDB response has the next token")
             metadata.update({
                 NEXT_TOKEN: _to_next_token(params, ddb_next_token=ddb_next_token)
             })
