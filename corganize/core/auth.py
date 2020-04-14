@@ -8,18 +8,28 @@ from corganize.externalclient import ddb
 LOGGER = logging.getLogger(__name__)
 
 
+def _redact_apikey(apikey: str):
+    if not apikey:
+        return ""
+
+    return apikey[:4] + "*" * (len(apikey) - 4)
+
+
 def get_userid(apikey: str):
     if apikey:
         items = ddb.DDB(USERS, USERS_FIELD_APIKEY, USERS_INDEX_APIKEY).query(apikey)
-        if len(items) == 1:
+        if len(items) >= 1:
+            LOGGER.warning(f"Too many users found for apikey={_redact_apikey(apikey)}")
+        elif len(items) == 1:
             return items[0][USERS_FIELD_USERID]
+        else:
+            LOGGER.debug(f"No userid found for apikey='{_redact_apikey(apikey)}'")
     return None
 
 
 def validate_and_get_userid(apikey: str):
     userid = get_userid(apikey)
     if not userid:
-        apikey_redacted = apikey[:4] + "*" * (len(apikey) - 4)
-        LOGGER.info(f"Invalid apikey='{apikey_redacted}'")
+        LOGGER.info(f"Invalid apikey='{_redact_apikey(apikey)}'")
         raise InvalidApiKeyError
     return userid
