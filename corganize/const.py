@@ -14,7 +14,6 @@ REQUEST_API_KEY = "apikey"
 REQUEST_PATH = "path"
 REQUEST_BODY = "body"
 REQUEST_BODY_FILTER = "filter"
-REQUEST_BODY_FILE = "file"  # this key will be deprecated later
 REQUEST_BODY_FILES = "files"
 
 # RESPONSE

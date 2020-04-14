@@ -1,5 +1,5 @@
 from corganize.const import (GET, PATH_FILES, PATH_FILES_INCOMPLETE,
-                             PATH_FILES_UPSERT, POST, REQUEST_BODY_FILE,
+                             PATH_FILES_UPSERT, POST,
                              REQUEST_BODY_FILES, RESPONSE_BODY, RESPONSE_FILES)
 from corganize.controller.decorator.endpoint import endpoint
 from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
