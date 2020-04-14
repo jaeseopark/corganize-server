@@ -17,7 +17,7 @@ def make_case_insensitive(headers: dict):
     return {**headers, **headers_lowercase, **headers_uppercase}
 
 
-def result_to_response(result):
+def result_to_response(result: dict):
     status = result.get(RESPONSE_STATUS, 200)
     if status < 200 or status > 299:
         msg = f"the status for a successful response should be between 200 and 299. status={status}"
