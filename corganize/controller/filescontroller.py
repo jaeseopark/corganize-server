@@ -33,7 +33,8 @@ def files_get_incomplete(userid: str, nexttoken: str = None, *args, **kwargs):
         # ----start of temporary fix----
         # FileRetrievalFilter.INCOMPLETE isn't working.. so here is the temporary fix
         # need to look into DDB table for the permanent fix
-        incompete_files[RESPONSE_FILES] = [f for f in incompete_files[RESPONSE_FILES] if not f.get("locationref")]
+        incompete_files[RESPONSE_FILES] = [f for f in incompete_files[RESPONSE_FILES]
+                                           if not f.get("locationref") and f.get("ispublic", True)]
         # ----end of temporary fix----
 
         return {RESPONSE_BODY: incompete_files}
