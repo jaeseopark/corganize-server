@@ -1,7 +1,6 @@
 import logging
 
-from corganize.const import (USERS, USERS_FIELD_APIKEY, USERS_FIELD_USERID,
-                             USERS_INDEX_APIKEY)
+from corganize.const import (USERS_FIELD_USERID)
 from corganize.error import CorganizeError, InvalidApiKeyError
 from corganize.externalclient import ddb
 
@@ -20,7 +19,7 @@ def _redact_apikey(apikey: str):
 def get_userid(apikey: str):
     if apikey:
         redacted_apikey = _redact_apikey(apikey)
-        query_response = ddb.DDB(USERS, USERS_FIELD_APIKEY, USERS_INDEX_APIKEY).query(apikey)
+        query_response = ddb.DDB(table="corganize-users", key_field="apikey", index="apikey-index").query(apikey)
         if len(query_response.items) > 1:
             raise CorganizeError(f"Too many users found for apikey={redacted_apikey} len(items)={len(query_response.items)}")
         elif len(query_response.items) == 1:

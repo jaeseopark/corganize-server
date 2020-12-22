@@ -42,7 +42,7 @@ EXPRESSION_ATTRIBUTE_VALUES = "ExpressionAttributeValues"
 
 # DDB FILES TABLE
 FILES = "corganize-files"
-FILES_INDEX_USERID = "userid-index"
+FILES_INDEX_USERID_LASTUPDATED = "userid-lastupdated-index"
 FILES_INDEX_USERSTORAGELOCATION = "userstoragelocation-index"
 FILES_FIELD_USERFILEID = "userfileid"
 FILES_FIELD_USERSTORAGELOCATION = "userstoragelocation"

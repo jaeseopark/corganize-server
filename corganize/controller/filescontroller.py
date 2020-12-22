@@ -1,9 +1,8 @@
 from corganize.const import (GET, PATH_FILES, PATH_FILES_INCOMPLETE,
                              PATH_FILES_UPSERT, POST,
-                             REQUEST_BODY_FILES, RESPONSE_BODY, RESPONSE_FILES)
+                             REQUEST_BODY_FILES, RESPONSE_BODY)
 from corganize.controller.decorator.endpoint import endpoint
-from corganize.core.enum.fileretrievalfilter import FileRetrievalFilter
-from corganize.core.files import get_files, upsert_file
+from corganize.core.files import get_files, get_incomplete_files, upsert_file
 from corganize.error import (BadRequestError, InvalidArgumentError,
                              MissingFieldError, UnrecognizedFieldError)
 
@@ -28,15 +27,7 @@ def files_get(userid: str, nexttoken: str = None, *args, **kwargs):
 @endpoint(path=PATH_FILES_INCOMPLETE, httpmethod=GET)
 def files_get_incomplete(userid: str, nexttoken: str = None, *args, **kwargs):
     try:
-        incompete_files = get_files(userid, next_token=nexttoken, filters=[FileRetrievalFilter.INCOMPLETE])
-
-        # ----start of temporary fix----
-        # FileRetrievalFilter.INCOMPLETE isn't working.. so here is the temporary fix
-        # need to look into DDB table for the permanent fix
-        incompete_files[RESPONSE_FILES] = [f for f in incompete_files[RESPONSE_FILES]
-                                           if not f.get("locationref") and f.get("ispublic", True)]
-        # ----end of temporary fix----
-
+        incompete_files = get_incomplete_files(userid, next_token=nexttoken)
         return {RESPONSE_BODY: incompete_files}
     except InvalidArgumentError as e:
         raise BadRequestError(str(e))
