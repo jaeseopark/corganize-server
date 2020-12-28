@@ -3,7 +3,7 @@ import json
 from boto3.dynamodb.conditions import Key
 
 from corganize.const import (FILES_FIELD_FILEID, FILES_FIELD_FILENAME,
-                             FILES_FIELD_ISACTIVE, FILES_FIELD_ISPUBLIC,
+                             FILES_FIELD_ISPUBLIC,
                              FILES_FIELD_LAST_UPDATED, FILES_FIELD_LOCATION,
                              FILES_FIELD_SIZE, FILES_FIELD_SOURCEURL,
                              FILES_FIELD_STORAGESERVICE, FILES_FIELD_TAGS,
@@ -21,7 +21,7 @@ _FILE_ALLOWED_FIELDS = [
     FILES_FIELD_LOCATION,
     FILES_FIELD_TAGS,
     FILES_FIELD_SOURCEURL,
-    FILES_FIELD_ISACTIVE,
+    "isactive",
     FILES_FIELD_ISPUBLIC
 ]
 
@@ -88,9 +88,11 @@ def upsert_file(userid, file: dict):
         FILES_FIELD_USERFILEID: userid + fileid,
         FILES_FIELD_USERSTORAGELOCATION: userid + storageservice + location,
         FILES_FIELD_LAST_UPDATED: get_posix_now(),
-        FILES_FIELD_ISACTIVE: file.get(FILES_FIELD_ISACTIVE, True),
         FILES_FIELD_ISPUBLIC: file.get(FILES_FIELD_ISPUBLIC, True)
     }
+
+    if "isactive" in file:
+        metadata["isactive"] = file.get("isactive")
 
     item = _DDB_CLIENT.upsert({**file, **metadata}, key_field=FILES_FIELD_USERFILEID)
     return _redact_item(item)
