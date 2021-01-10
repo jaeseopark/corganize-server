@@ -40,6 +40,19 @@ def _redact_item(item: dict):
     return item
 
 
+def get_active_files(userid: str, next_token: str = None):
+    params = {
+        "IndexName": "userid-dateactivated-index",
+        "KeyConditionExpression": Key("userid").eq(userid),
+        "ScanIndexForward": False  # this is equivalent to: ORDER BY DESC
+    }
+    query_response = _DDB_CLIENT.query(key="dummykey-refactorme", next_token=next_token, params=params)
+    return {
+        "metadata": query_response.metadata,
+        "files": [_redact_item(item) for item in query_response.items]
+    }
+
+
 def get_incomplete_files(userid: str, next_token: str = None, filters: list = None):
     # This function will have its own index later.. for now use get_files with local filtering.
     #
@@ -63,7 +76,7 @@ def get_files(userid: str, next_token: str = None):
     params = {
         "IndexName": "userid-lastupdated-index",
         "KeyConditionExpression": Key("userid").eq(userid),
-        "ScanIndexForward": False
+        "ScanIndexForward": False  # this is equivalent to: ORDER BY DESC
     }
     query_response = _DDB_CLIENT.query(key="dummykey-refactorme", next_token=next_token, params=params)
     return {
