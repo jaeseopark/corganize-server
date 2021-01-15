@@ -54,7 +54,6 @@ FILES_FIELD_TAGS = "tags"
 FILES_FIELD_STORAGESERVICE = "storageservice"
 FILES_FIELD_LOCATION = "locationref"
 FILES_FIELD_SOURCEURL = "sourceurl"
-FILES_FIELD_ISPUBLIC = "ispublic"
 
 # DDB USERS TABLE
 USERS = "corganize-users"

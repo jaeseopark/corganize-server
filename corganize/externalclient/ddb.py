@@ -94,3 +94,11 @@ class DDB:
             **kwargs
         )
         return _remove_decimals(response[DDB_RESPONSE_ATTRIBUTES])
+
+    def remove_attrs(self, item, key_field, attrs_to_remove) -> dict:
+        attrs = ", ".join(attrs_to_remove)
+        self.table.update_item(
+            UpdateExpression=f"remove {attrs}",
+            Key={key_field: item[key_field]},
+            ReturnValues="NONE"
+        )

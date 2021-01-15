@@ -3,7 +3,7 @@ import json
 from boto3.dynamodb.conditions import Key
 
 from corganize.const import (FILES_FIELD_FILEID, FILES_FIELD_FILENAME,
-                             FILES_FIELD_ISPUBLIC, FILES_FIELD_LOCATION,
+                             FILES_FIELD_LOCATION,
                              FILES_FIELD_SIZE, FILES_FIELD_SOURCEURL,
                              FILES_FIELD_STORAGESERVICE, FILES_FIELD_TAGS,
                              FILES_FIELD_USERFILEID, FILES_FIELD_USERID,
@@ -21,14 +21,14 @@ _FILE_ALLOWED_FIELDS = [
     FILES_FIELD_TAGS,
     FILES_FIELD_SOURCEURL,
     "isactive",
-    FILES_FIELD_ISPUBLIC,
-    "dateactivated"
+    "ispublic"
 ]
 
 _REDACTED_FIELDS = [
     FILES_FIELD_USERID,
     FILES_FIELD_USERFILEID,
-    FILES_FIELD_USERSTORAGELOCATION
+    FILES_FIELD_USERSTORAGELOCATION,
+    "isactive"
 ]
 
 _DDB_CLIENT = ddb.DDB(table="corganize-files", key_field="userid", index="userid-index")
@@ -89,23 +89,23 @@ def upsert_file(userid, file: dict):
     fileid = file.get(FILES_FIELD_FILEID)
     if not fileid:
         raise MissingFieldError(f"'{FILES_FIELD_FILEID}' is missing")
-    storageservice = file.get(FILES_FIELD_STORAGESERVICE, '')
-    location = file.get(FILES_FIELD_LOCATION, '')
 
     unrecognized_fields = [k for k in file.keys() if k not in _FILE_ALLOWED_FIELDS]
     if unrecognized_fields:
         raise UnrecognizedFieldError(f"Unrecognized fields: {json.dumps(unrecognized_fields)}")
 
     metadata = {
-        FILES_FIELD_USERID: userid,
-        FILES_FIELD_USERFILEID: userid + fileid,
-        FILES_FIELD_USERSTORAGELOCATION: userid + storageservice + location,
-        "lastupdated": get_posix_now(),
-        FILES_FIELD_ISPUBLIC: file.get(FILES_FIELD_ISPUBLIC, True)
+        "userid": userid,
+        "userfileid": userid + fileid,
+        "lastupdated": get_posix_now()
     }
 
-    if "isactive" in file or "dateactivated" in file:
-        metadata["dateactivated"] = file.get("dateactivated", metadata["lastupdated"])
+    if "isactive" in file:
+        isactive = file.pop("isactive")
+        if isactive:
+            metadata["dateactivated"] = file.get("dateactivated", metadata["lastupdated"])
+        else:
+            _DDB_CLIENT.remove_attrs(metadata, "userfileid", ["dateactivated"])
 
     item = _DDB_CLIENT.upsert({**file, **metadata}, key_field=FILES_FIELD_USERFILEID)
     return _redact_item(item)
