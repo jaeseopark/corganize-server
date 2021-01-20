@@ -31,20 +31,6 @@ def _remove_decimals(obj: dict):
     return json.loads(json.dumps(obj, cls=DecimalEncoder))
 
 
-# def _to_next_token(ddb_base_params: dict, last_evaluated_key: dict, encoding: str = 'utf-8') -> str:
-#     ddb_new_params = {
-#         **ddb_base_params,
-#         "LastEvaluatedKey": last_evaluated_key
-#     }
-#     ddb_new_params_str = json.dumps(ddb_new_params)
-#     return base64.b64encode(ddb_new_params_str.encode(encoding)).decode(encoding)
-
-
-def _to_query_params(next_token: str, encoding: str) -> str:
-    ddb_params_str = base64.b64decode(next_token.encode(encoding)).decode(encoding)
-    return json.loads(ddb_params_str)
-
-
 class DDBQueryResponse:
     def __init__(self, items: list, metadata: dict):
         self.items = items
@@ -57,17 +43,17 @@ class DDB:
         self.key_field = key_field
         self.index = index
 
-    def query(self, key, next_token: str = None, filters: list = None, params: dict = None) -> DDBQueryResponse:
-        items = list()
+    def query(self, key, next_token: str = None, filters: list = None, **kwargs) -> DDBQueryResponse:
+        params = {
+            DDB_REQUEST_INDEX_NAME: self.index,
+            DDB_REQUEST_KEY_CONDITION_EXPRESSION: Key(self.key_field).eq(key),
+            "Limit": 500,
+            **kwargs
+        }
 
         if next_token:
-            LOGGER.info("Next token found in the request. converting it to params...")
-            params = _to_query_params(next_token)
-        elif not params:
-            params = {
-                DDB_REQUEST_INDEX_NAME: self.index,
-                DDB_REQUEST_KEY_CONDITION_EXPRESSION: Key(self.key_field).eq(key)
-            }
+            LOGGER.info("'nexttoken' found in the request. Adding it to the DDB query params...")
+            params["ExclusiveStartKey"] = json.loads(base64.b64decode(next_token.encode("utf-8")).decode("utf-8"))
 
         response = self.table.query(**params)
 
@@ -77,9 +63,9 @@ class DDB:
         last_evaluated_key = response.get("LastEvaluatedKey")
         if last_evaluated_key:
             LOGGER.info("The DDB response has the next token")
-            # metadata.update({
-            #     "LastEvaluatedKey": _to_next_token(params, last_evaluated_key=last_evaluated_key)
-            # })
+            metadata.update({
+                "nexttoken": base64.b64encode(json.dumps(_remove_decimals(last_evaluated_key)).encode("utf-8")).decode("utf-8")
+            })
 
         return DDBQueryResponse(_remove_decimals(items), metadata)
 
