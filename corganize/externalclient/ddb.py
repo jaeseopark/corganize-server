@@ -57,17 +57,17 @@ class DDB:
 
         response = self.table.query(**params)
 
-        items = response.get(DDB_RESPONSE_ITEMS, list())
+        items = _remove_decimals(response.get(DDB_RESPONSE_ITEMS, list()))
 
         metadata = dict()
         last_evaluated_key = response.get("LastEvaluatedKey")
-        if last_evaluated_key:
+        if last_evaluated_key and len(items) > 0:
             LOGGER.info("The DDB response has the next token")
             metadata.update({
                 "nexttoken": base64.b64encode(json.dumps(_remove_decimals(last_evaluated_key)).encode("utf-8")).decode("utf-8")
             })
 
-        return DDBQueryResponse(_remove_decimals(items), metadata)
+        return DDBQueryResponse(items, metadata)
 
     def upsert(self, item, key_field, **kwargs) -> dict:
         item_keys = [k for k in item.keys() if k != key_field]
