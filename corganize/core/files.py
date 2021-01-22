@@ -21,7 +21,8 @@ _FILE_ALLOWED_FIELDS = [
     FILES_FIELD_TAGS,
     FILES_FIELD_SOURCEURL,
     "isactive",
-    "ispublic"
+    "ispublic",
+    "mimetype"
 ]
 
 _REDACTED_FIELDS = [

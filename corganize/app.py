@@ -75,7 +75,7 @@ def lambda_handler(event, context):
         return result_to_response(result)
     except BadRequestError as e:
         status = 400
-        response_body = str(e)
+        response_body = {"message": str(e)}
     except InvalidApiKeyError:
         status = 401
     except ResourceNotFoundError:
