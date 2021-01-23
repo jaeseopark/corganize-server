@@ -22,7 +22,8 @@ _FILE_ALLOWED_FIELDS = [
     FILES_FIELD_SOURCEURL,
     "isactive",
     "ispublic",
-    "mimetype"
+    "mimetype",
+    "lastopened"
 ]
 
 _REDACTED_FIELDS = [
