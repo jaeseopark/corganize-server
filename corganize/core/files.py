@@ -23,7 +23,7 @@ _FILE_ALLOWED_FIELDS = [
     "isactive",
     "ispublic",
     "mimetype",
-    "lastopened"
+    "opened"
 ]
 
 _REDACTED_FIELDS = [
@@ -108,6 +108,9 @@ def upsert_file(userid, file: dict):
             metadata["dateactivated"] = file.get("dateactivated", metadata["lastupdated"])
         else:
             _DDB_CLIENT.remove_attrs(metadata, "userfileid", ["dateactivated"])
+
+    if file.get("opened"):
+        metadata["lastopened"] = get_posix_now()
 
     item = _DDB_CLIENT.upsert({**file, **metadata}, key_field=FILES_FIELD_USERFILEID)
     return _redact_item(item)
