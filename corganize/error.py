@@ -16,11 +16,11 @@ class BadRequestError(CorganizeError):
     pass
 
 
-# Core Application Errors
-
 class MissingFieldError(CorganizeError):
     pass
 
+
+# Core Application Errors
 
 class UnrecognizedFieldError(CorganizeError):
     pass
