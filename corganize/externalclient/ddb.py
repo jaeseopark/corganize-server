@@ -44,7 +44,7 @@ class DDB:
         self.key_field = key_field
         self.index = index
 
-    def query(self, key, next_token: str = None, filters: list = None, **kwargs) -> DDBQueryResponse:
+    def query(self, key=None, next_token: str = None, **kwargs) -> DDBQueryResponse:
         params = {
             DDB_REQUEST_INDEX_NAME: self.index,
             DDB_REQUEST_KEY_CONDITION_EXPRESSION: Key(self.key_field).eq(key),

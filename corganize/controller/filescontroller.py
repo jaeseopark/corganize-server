@@ -1,4 +1,4 @@
-from corganize.const import (PATH_FILES_INCOMPLETE, RESPONSE_BODY)
+from corganize.const import (RESPONSE_BODY)
 from corganize.controller.decorator.endpoint import endpoint
 from corganize.core.files import get_files, get_incomplete_files, update_file, get_active_files, create_file
 from corganize.error import (BadRequestError, InvalidArgumentError,
@@ -34,7 +34,7 @@ def files_get(userid: str, nexttoken: str = None, *args, **kwargs):
         raise BadRequestError(str(e))
 
 
-@endpoint(path=PATH_FILES_INCOMPLETE, httpmethod="GET")
+@endpoint(path="/files/incomplete", httpmethod="GET")
 def files_get_incomplete(userid: str, nexttoken: str = None, *args, **kwargs):
     try:
         incompete_files = get_incomplete_files(userid, next_token=nexttoken)
@@ -50,13 +50,6 @@ def files_get_active(userid: str, nexttoken: str = None, *args, **kwargs):
         return {RESPONSE_BODY: active_files}
     except InvalidArgumentError as e:
         raise BadRequestError(str(e))
-
-
-@endpoint(path="/files/upsert", httpmethod="POST")  # TODO: delete this when the PATCH endpoint becomes live.
-def upsert(userid, body, *args, **kwargs):
-    return {
-        "body": [update_file(userid, file) for file in body.get("files")]
-    }
 
 
 @endpoint("/files", httpmethod="PATCH")

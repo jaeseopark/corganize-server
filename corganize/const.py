@@ -1,12 +1,3 @@
-# HTTP METHODS
-GET = "GET"
-POST = "POST"
-
-# HTTP PATHS
-PATH_FILES_UPSERT = "/files/upsert"
-PATH_FILES = "/files"
-PATH_FILES_INCOMPLETE = "/files/incomplete"
-
 # REQUEST
 REQUEST_HTTP_METHOD = "httpMethod"
 REQUEST_HEADERS = "headers"
@@ -51,7 +42,6 @@ FILES_FIELD_FILEID = "fileid"
 FILES_FIELD_FILENAME = "filename"
 FILES_FIELD_SIZE = "size"
 FILES_FIELD_TAGS = "tags"
-FILES_FIELD_STORAGESERVICE = "storageservice"
 FILES_FIELD_LOCATION = "locationref"
 FILES_FIELD_SOURCEURL = "sourceurl"
 
