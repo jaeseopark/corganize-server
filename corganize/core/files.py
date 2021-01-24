@@ -22,8 +22,7 @@ _FILE_ALLOWED_FIELDS = [
     FILES_FIELD_SOURCEURL,
     "isactive",
     "ispublic",
-    "mimetype",
-    "opened"
+    "mimetype"
 ]
 
 _REDACTED_FIELDS = [
@@ -40,6 +39,23 @@ def _redact_item(item: dict):
     for key in [key for key in item.keys() if key in _REDACTED_FIELDS]:
         item.pop(key)
     return item
+
+
+def _create_metadata(userid: str, file: dict):
+    fileid = file.get(FILES_FIELD_FILEID)
+    if not fileid:
+        raise MissingFieldError(f"'{FILES_FIELD_FILEID}' is missing")
+
+    unrecognized_fields = [k for k in file.keys() if k not in _FILE_ALLOWED_FIELDS]
+    if unrecognized_fields:
+        raise UnrecognizedFieldError(f"Unrecognized fields: {json.dumps(unrecognized_fields)}")
+
+    metadata = {
+        "userid": userid,
+        "userfileid": userid + fileid,
+        "lastupdated": get_posix_now()
+    }
+    return metadata
 
 
 def get_active_files(userid: str, next_token: str = None):
@@ -87,30 +103,25 @@ def get_files(userid: str, next_token: str = None):
     }
 
 
-def upsert_file(userid, file: dict):
-    fileid = file.get(FILES_FIELD_FILEID)
-    if not fileid:
-        raise MissingFieldError(f"'{FILES_FIELD_FILEID}' is missing")
-
-    unrecognized_fields = [k for k in file.keys() if k not in _FILE_ALLOWED_FIELDS]
-    if unrecognized_fields:
-        raise UnrecognizedFieldError(f"Unrecognized fields: {json.dumps(unrecognized_fields)}")
-
-    metadata = {
-        "userid": userid,
-        "userfileid": userid + fileid,
-        "lastupdated": get_posix_now()
-    }
-
+def create_file(userid, file: dict):
+    metadata = _create_metadata(userid, file)
     if "isactive" in file:
         isactive = file.pop("isactive")
         if isactive:
-            metadata["dateactivated"] = file.get("dateactivated", metadata["lastupdated"])
+            metadata["dateactivated"] = metadata["lastupdated"]
+
+    item = _DDB_CLIENT.put({**file, **metadata})
+    return _redact_item(item)
+
+
+def update_file(userid, file: dict):
+    metadata = _create_metadata(userid, file)
+    if "isactive" in file:
+        isactive = file.pop("isactive")
+        if isactive:
+            metadata["dateactivated"] = metadata["lastupdated"]
         else:
             _DDB_CLIENT.remove_attrs(metadata, "userfileid", ["dateactivated"])
-
-    if file.get("opened"):
-        metadata["lastopened"] = get_posix_now()
 
     item = _DDB_CLIENT.upsert({**file, **metadata}, key_field=FILES_FIELD_USERFILEID)
     return _redact_item(item)

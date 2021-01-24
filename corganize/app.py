@@ -86,6 +86,6 @@ def lambda_handler(event, context):
 
     # Return non-200 level response
     return {
-        RESPONSE_STATUS: status,
-        RESPONSE_BODY: response_body
+        "statusCode": status,
+        "body": json.dumps(response_body)
     }

@@ -3,6 +3,7 @@ import decimal
 import json
 import logging
 
+import botocore
 import boto3
 from boto3.dynamodb.conditions import Key
 
@@ -68,6 +69,19 @@ class DDB:
             })
 
         return DDBQueryResponse(items, metadata)
+
+    def put(self, item) -> dict:
+        try:
+            self.table.put_item(
+                Item=item,
+                ReturnValues="ALL_OLD",
+                ConditionExpression="attribute_not_exists(userfileid)"
+            )
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                raise FileExistsError("Primary Key already exists")
+            raise
+        return _remove_decimals(item)
 
     def upsert(self, item, key_field, **kwargs) -> dict:
         item_keys = [k for k in item.keys() if k != key_field]

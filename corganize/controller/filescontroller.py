@@ -1,8 +1,6 @@
-from corganize.const import (GET, PATH_FILES, PATH_FILES_INCOMPLETE,
-                             PATH_FILES_UPSERT, POST,
-                             REQUEST_BODY_FILES, RESPONSE_BODY)
+from corganize.const import (PATH_FILES_INCOMPLETE, RESPONSE_BODY)
 from corganize.controller.decorator.endpoint import endpoint
-from corganize.core.files import get_files, get_incomplete_files, upsert_file, get_active_files
+from corganize.core.files import get_files, get_incomplete_files, update_file, get_active_files, create_file
 from corganize.error import (BadRequestError, InvalidArgumentError,
                              MissingFieldError, UnrecognizedFieldError)
 
@@ -16,7 +14,19 @@ def _to_int(value: str):
     return None
 
 
-@endpoint(path=PATH_FILES, httpmethod=GET)
+def _create_or_update_file(core_func, userid: str, body: dict, *args, **kwargs):
+    if not isinstance(body, dict):
+        raise BadRequestError("The request body must be a dictionary")
+
+    try:
+        return {
+            RESPONSE_BODY: core_func(userid, body)
+        }
+    except (MissingFieldError, UnrecognizedFieldError, FileExistsError) as e:
+        raise BadRequestError(str(e))
+
+
+@endpoint(path="/files", httpmethod="GET")
 def files_get(userid: str, nexttoken: str = None, *args, **kwargs):
     try:
         return {RESPONSE_BODY: get_files(userid, next_token=nexttoken)}
@@ -24,7 +34,7 @@ def files_get(userid: str, nexttoken: str = None, *args, **kwargs):
         raise BadRequestError(str(e))
 
 
-@endpoint(path=PATH_FILES_INCOMPLETE, httpmethod=GET)
+@endpoint(path=PATH_FILES_INCOMPLETE, httpmethod="GET")
 def files_get_incomplete(userid: str, nexttoken: str = None, *args, **kwargs):
     try:
         incompete_files = get_incomplete_files(userid, next_token=nexttoken)
@@ -33,7 +43,7 @@ def files_get_incomplete(userid: str, nexttoken: str = None, *args, **kwargs):
         raise BadRequestError(str(e))
 
 
-@endpoint(path="/files/active", httpmethod=GET)
+@endpoint(path="/files/active", httpmethod="GET")
 def files_get_active(userid: str, nexttoken: str = None, *args, **kwargs):
     try:
         active_files = get_active_files(userid, next_token=nexttoken)
@@ -42,25 +52,18 @@ def files_get_active(userid: str, nexttoken: str = None, *args, **kwargs):
         raise BadRequestError(str(e))
 
 
-@endpoint(path=PATH_FILES_UPSERT, httpmethod=POST)
-def upsert(userid: str, body: dict, *args, **kwargs):
-    files = body.get(REQUEST_BODY_FILES)
+@endpoint(path="/files/upsert", httpmethod="POST")  # TODO: delete this when the PATCH endpoint becomes live.
+def upsert(userid, body, *args, **kwargs):
+    return {
+        "body": [update_file(userid, file) for file in body.get("files")]
+    }
 
-    if not files:
-        raise BadRequestError(f"'{REQUEST_BODY_FILES}' missing or empty")
 
-    if not isinstance(files, list):
-        raise BadRequestError(f"'{REQUEST_BODY_FILES}' must be a list")
+@endpoint("/files", httpmethod="PATCH")
+def update(*args, **kwargs):
+    return _create_or_update_file(update_file, *args, **kwargs)
 
-    for element in files:
-        if not isinstance(element, dict):
-            raise BadRequestError(f"All elements of '{REQUEST_BODY_FILES}' must be dictionaries")
 
-    try:
-        upserted_files = [upsert_file(userid, file) for file in files]
-
-        return {
-            RESPONSE_BODY: upserted_files
-        }
-    except (MissingFieldError, UnrecognizedFieldError) as e:
-        raise BadRequestError(str(e))
+@endpoint("/files", httpmethod="POST")
+def create(*args, **kwargs):
+    return _create_or_update_file(create_file, *args, **kwargs)
