@@ -24,6 +24,14 @@ if len(root_logger.handlers) > 0:
 
 LOGGER = logging.getLogger(__name__)
 
+BASE_RESPONSE = {
+    "headers": {
+        "Access-Control-Allow-Headers": "Content-Type,apikey",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
+    }
+}
+
 
 def make_case_insensitive(headers: dict):
     headers_lowercase = {k.lower(): v for k, v in headers.items()}
@@ -41,6 +49,7 @@ def result_to_response(result: dict):
         # TODO [nice-to-have] implement a custom JSONEncoder for more advanced stuff
         response_body = json.dumps(response_body)
     return {
+        **BASE_RESPONSE,
         RESPONSE_STATUS: status,
         RESPONSE_BODY: response_body
     }
@@ -55,6 +64,9 @@ def lambda_handler(event, context):
         request_body = event.get(REQUEST_BODY) or dict()
         path = event.get(REQUEST_PATH)
         http_method = event.get(REQUEST_HTTP_METHOD).upper()
+
+        if http_method == "OPTIONS":
+            return BASE_RESPONSE
 
         # Authenticate
         apikey = headers.get(REQUEST_API_KEY)
