@@ -27,10 +27,13 @@ def get_active_files(userid: str, next_token: str = None):
 
 def get_incomplete_files(userid: str, next_token: str = None):
     params = {
-        "IndexName": "userid-storageservice-index",
+        "IndexName": "userid-storageservice-index-optimized",
         "KeyConditionExpression": Key("userid").eq(userid) & Key("storageservice").eq("None")
     }
-    return _DDB_CLIENT.query(**params, next_token=next_token)
+    r = _DDB_CLIENT.query(**params, next_token=next_token)
+    for file in r.items:
+        file["fileid"] = file["userfileid"][len(userid):]
+    return r
 
 
 def get_files(userid: str, next_token: str = None):
