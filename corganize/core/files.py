@@ -65,3 +65,7 @@ def update_file(userid, file: dict):
             _DDB_CLIENT.remove_attrs(metadata, "userfileid", ["dateactivated"])
 
     return _DDB_CLIENT.upsert({**file, **metadata}, key_field=FILES_FIELD_USERFILEID)
+
+
+def delete_file(userid, file: dict):
+    return _DDB_CLIENT.delete({"userfileid": userid + file.get("fileid")})

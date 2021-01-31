@@ -1,6 +1,7 @@
 import json
 from corganize.controller.decorator.endpoint import endpoint
-from corganize.core.files import get_files, get_incomplete_files, update_file, get_active_files, create_file
+from corganize.core.files import get_files, get_incomplete_files, update_file, get_active_files, create_file, \
+    delete_file
 from corganize.error import (BadRequestError)
 
 _FILE_ALLOWED_FIELDS = [
@@ -109,3 +110,14 @@ def update(*args, **kwargs):
 @endpoint("/files", httpmethod="POST")
 def create(*args, **kwargs):
     return _create_or_update_file(create_file, *args, **kwargs)
+
+
+@endpoint("/files", httpmethod="DELETE")
+def delete(userid, body, *args, **kwargs):
+    status = delete_file(userid, body)
+    return {
+        "statusCode": status,
+        "body": {
+            "message": "success"
+        } if status == 200 else {}
+    }

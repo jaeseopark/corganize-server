@@ -102,3 +102,7 @@ class DDB:
             Key={key_field: item[key_field]},
             ReturnValues="NONE"
         )
+
+    def delete(self, item):
+        r = self.table.delete_item(Key=item)
+        return r["ResponseMetadata"]["HTTPStatusCode"]
