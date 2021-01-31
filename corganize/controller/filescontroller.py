@@ -1,21 +1,7 @@
-import json
 from corganize.controller.decorator.endpoint import endpoint
 from corganize.core.files import get_files, get_incomplete_files, update_file, get_active_files, create_file, \
     delete_file
 from corganize.error import (BadRequestError)
-
-_FILE_ALLOWED_FIELDS = [
-    "fileid",
-    "filename",
-    "size",
-    "storageservice",
-    "locationref",
-    "tags",
-    "sourceurl",
-    "isactive",
-    "ispublic",
-    "mimetype"
-]
 
 _REDACTED_FIELDS = [
     "userid",
@@ -46,10 +32,6 @@ def _create_or_update_file(core_func, userid: str, body: dict, *args, **kwargs):
 
     if "fileid" not in body:
         raise BadRequestError("'fileid' is missing")
-
-    unrecognized_fields = [k for k in body.keys() if k not in _FILE_ALLOWED_FIELDS]
-    if unrecognized_fields:
-        raise BadRequestError(f"Unrecognized fields: {json.dumps(unrecognized_fields)}")
 
     try:
         return {
