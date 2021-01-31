@@ -77,21 +77,15 @@ def files_get_active(userid: str, nexttoken: str = None, *args, **kwargs):
     }
 
 
-@endpoint(path="/files/upsert", httpmethod="POST")  # TODO: delete this when the PATCH endpoint becomes live.
-def upsert(userid, body, *args, **kwargs):
-    return {
-        "body": [update_file(userid, file) for file in body.get("files")]
-    }
-
-
 @endpoint("/files", httpmethod="PATCH")
 def update(*args, **kwargs):
     return _create_or_update_file(update_file, *args, **kwargs)
 
 
 @endpoint("/files", httpmethod="POST")
-def create(*args, **kwargs):
-    return _create_or_update_file(create_file, *args, **kwargs)
+def create(userid, body, *args, **kwargs):
+    body["isactive"] = True
+    return _create_or_update_file(create_file, userid, body, *args, **kwargs)
 
 
 @endpoint("/files", httpmethod="DELETE")
