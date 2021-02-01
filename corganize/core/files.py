@@ -2,6 +2,7 @@ from boto3.dynamodb.conditions import Key
 
 from corganize.const import (FILES_FIELD_USERFILEID)
 from corganize.core.util.datetimeutil import get_posix_now
+from corganize.error import BadRequestError
 from corganize.externalclient import ddb
 
 _DDB_CLIENT = ddb.DDB(table="corganize-files", key_field="userid", index="userid-index")
@@ -46,6 +47,12 @@ def get_files(userid: str, next_token: str = None):
 
 
 def create_file(userid, file: dict):
+    fileid = file.get("fileid")
+    if not fileid:
+        raise BadRequestError("'fileid' is a mandatory field")
+    if len(fileid) > 128:
+        raise BadRequestError("'fileid' must be 128 bytes or less")
+
     metadata = _create_metadata(userid, file)
     if "isactive" in file:
         isactive = file.pop("isactive")
